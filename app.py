@@ -89,8 +89,10 @@ def create_app(config_class=Config):
             x_port=app.config["TRUSTED_PROXY_HOPS"],
         )
 
-    # Ensure instance directory exists for SQLite storage
-    os.makedirs(app.instance_path, exist_ok=True)
+    # Ensure the instance directory exists only for file-backed SQLite storage.
+    database_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if database_uri.startswith("sqlite:///") and database_uri != "sqlite:///:memory:":
+        os.makedirs(app.instance_path, exist_ok=True)
 
     # Initialize extensions
     db.init_app(app)

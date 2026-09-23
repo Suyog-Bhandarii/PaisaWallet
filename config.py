@@ -1,13 +1,19 @@
 import os
 import secrets
+import logging
 from typing import ClassVar
 
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+logger = logging.getLogger(__name__)
 
 # Load local .env only for non-production development. Production should use the platform secret store.
-if os.environ.get('ENVIRONMENT', os.environ.get('FLASK_ENV', 'development')) != 'production':
+is_vercel_runtime = bool(os.environ.get('VERCEL'))
+if (
+    os.environ.get('ENVIRONMENT', os.environ.get('FLASK_ENV', 'development')) != 'production'
+    and not is_vercel_runtime
+):
     load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
@@ -19,6 +25,11 @@ def get_database_url():
     - Converts legacy 'postgres://' prefixes to 'postgresql://' for SQLAlchemy compatibility.
     """
     raw_url = os.environ.get('DATABASE_URL')
+    logger.warning('DATABASE_URL present at runtime: %s', bool(raw_url))
+
+    if not raw_url and is_vercel_runtime:
+        raise RuntimeError('DATABASE_URL must be configured in the Vercel runtime.')
+
     if raw_url:
         # SQLAlchemy 1.4+ / 2.0 requires postgresql:// instead of postgres://
         if raw_url.startswith('postgres://'):
