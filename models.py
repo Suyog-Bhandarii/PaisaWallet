@@ -3,7 +3,6 @@
 import secrets
 
 from datetime import datetime, timezone
-from decimal import Decimal
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -12,10 +11,8 @@ from sqlalchemy import CheckConstraint, Index, UniqueConstraint, event
 from enums import (
     AccountStatus,
     IdempotencyState,
-    LedgerEntryType,
     MerchantStatus,
     TransactionStatus,
-    TransactionType,
     UserRole,
 )
 

@@ -12,7 +12,7 @@ from threading import RLock
 from sqlalchemy import func
 
 from audit import log_audit_event
-from enums import AccountStatus, LedgerEntryType, MerchantStatus, TransactionStatus, TransactionType, UserRole
+from enums import LedgerEntryType, MerchantStatus, TransactionStatus, TransactionType, UserRole
 from models import LedgerEntry, Merchant, Transaction, User, db
 from money import DEFAULT_CURRENCY, format_npr, npr_to_paisa
 from money import InvalidAmountError as MoneyInvalidAmountError

@@ -227,7 +227,7 @@ def create_app(config_class=Config):
                 "app": "paisa-wallet",
                 "database": "ready"
             }), 200
-        except Exception as e:
+        except Exception:
             return jsonify({
                 "status": "not_ready",
                 "app": "paisa-wallet",
