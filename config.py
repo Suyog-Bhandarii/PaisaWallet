@@ -19,25 +19,24 @@ def get_database_url():
     - Converts legacy 'postgres://' prefixes to 'postgresql://' for SQLAlchemy compatibility.
     """
     raw_url = os.environ.get('DATABASE_URL')
-    if not raw_url:
-        instance_dir = os.path.join(BASE_DIR, 'instance')
-        os.makedirs(instance_dir, exist_ok=True)
-        db_path = os.path.join(instance_dir, 'paisa_wallet.db').replace('\\', '/')
-        return f"sqlite:///{db_path}"
+    if raw_url:
+        # SQLAlchemy 1.4+ / 2.0 requires postgresql:// instead of postgres://
+        if raw_url.startswith('postgres://'):
+            return raw_url.replace('postgres://', 'postgresql://', 1)
 
-    # SQLAlchemy 1.4+ / 2.0 requires postgresql:// instead of postgres://
-    if raw_url.startswith('postgres://'):
-        return raw_url.replace('postgres://', 'postgresql://', 1)
+        # Resolve relative SQLite paths against BASE_DIR without creating directories.
+        if raw_url.startswith('sqlite:///') and not raw_url.startswith('sqlite:///:memory:'):
+            sub_path = raw_url[len('sqlite:///'):]
+            if not (len(sub_path) > 1 and sub_path[1] == ':') and not sub_path.startswith('/'):
+                abs_path = os.path.join(BASE_DIR, sub_path)
+                return f"sqlite:///{abs_path.replace(os.sep, '/')}"
 
-    # Resolve relative SQLite paths against BASE_DIR
-    if raw_url.startswith('sqlite:///') and not raw_url.startswith('sqlite:///:memory:'):
-        sub_path = raw_url[len('sqlite:///'):]
-        if not (len(sub_path) > 1 and sub_path[1] == ':') and not sub_path.startswith('/'):
-            abs_path = os.path.join(BASE_DIR, sub_path)
-            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
-            return f"sqlite:///{abs_path.replace(os.sep, '/')}"
+        return raw_url
 
-    return raw_url
+    instance_dir = os.path.join(BASE_DIR, 'instance')
+    os.makedirs(instance_dir, exist_ok=True)
+    db_path = os.path.join(instance_dir, 'paisa_wallet.db').replace('\\', '/')
+    return f"sqlite:///{db_path}"
 
 
 class Config:
