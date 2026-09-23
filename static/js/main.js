@@ -30,5 +30,9 @@ function installActionDelegation() {
 /** Paisa Wallet public and dashboard interactions. */
 document.addEventListener('DOMContentLoaded', () => {
     installActionDelegation();
+    const merchantForm = document.getElementById('form-merchant-reg');
+    if (merchantForm && typeof window.handleRegisterMerchant === 'function') {
+        merchantForm.addEventListener('submit', window.handleRegisterMerchant);
+    }
     console.log('Paisa Wallet frontend loaded.');
 });

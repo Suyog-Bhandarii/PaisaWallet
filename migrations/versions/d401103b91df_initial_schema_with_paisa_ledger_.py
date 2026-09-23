@@ -26,7 +26,7 @@ def upgrade():
         sa.Column('balance_paisa', sa.BigInteger(), nullable=False, server_default='0'),
         sa.Column('currency', sa.String(length=3), nullable=False, server_default='NPR'),
         sa.Column('status', sa.String(length=20), nullable=False, server_default='ACTIVE'),
-        sa.Column('is_merchant', sa.Boolean(), nullable=False, server_default=sa.text('0')),
+        sa.Column('is_merchant', sa.Boolean(), nullable=False, server_default=sa.text('false')),
         sa.Column('failed_login_attempts', sa.Integer(), nullable=False, server_default='0'),
         sa.Column('locked_until', sa.DateTime(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),

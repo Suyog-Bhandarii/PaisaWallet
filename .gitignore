@@ -12,3 +12,6 @@ instance/
 .pytest_cache/
 .vscode/
 .idea/
+
+.vercel
+.env*

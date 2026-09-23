@@ -26,6 +26,8 @@ def get_database_url():
     """
     raw_url = os.environ.get('DATABASE_URL')
     logger.warning('DATABASE_URL present at runtime: %s', bool(raw_url))
+    logger.warning('PAISA_RUNTIME_TEST present at runtime: %s', bool(os.environ.get('PAISA_RUNTIME_TEST')))
+    logger.warning('ENVIRONMENT present at runtime: %s', bool(os.environ.get('ENVIRONMENT')))
 
     if not raw_url and is_vercel_runtime:
         raise RuntimeError('DATABASE_URL must be configured in the Vercel runtime.')
@@ -72,9 +74,10 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = (
-        os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() in ('true', '1')
-        or ENV == 'production'
-    )
+    os.environ.get('VERCEL') is not None
+    or os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() in ('true', '1')
+    or ENV == 'production'
+)
     PERMANENT_SESSION_LIFETIME = int(os.environ.get('PERMANENT_SESSION_LIFETIME', '86400'))  # 24 hours
 
     # Security & Rate Limiting (Flask-Limiter)
