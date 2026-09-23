@@ -230,6 +230,27 @@ web: gunicorn wsgi:app
 2. Set environment variables in the platform dashboard (`SECRET_KEY`, `DATABASE_URL`, `SESSION_COOKIE_SECURE=true`).
 3. Deploy! Run `flask db upgrade` in the release or build phase.
 
+### Render Blueprint Deployment
+This repository includes `render.yaml` for Render Blueprint deployment.
+
+1. Push the repository to GitHub.
+2. In Render, choose **New +** then **Blueprint** and select the GitHub repository.
+3. Review the proposed `paisa-wallet` web service and `paisa-wallet-db` PostgreSQL database, then apply the blueprint.
+4. Render generates `SECRET_KEY`, connects `DATABASE_URL`, enables secure cookies, runs migrations before Gunicorn, and checks `/api/health`.
+5. After deployment, open the generated `onrender.com` URL and verify signup, login, dashboard loading, and the `/api/ready` endpoint.
+
+The Blueprint currently uses `memory://` for Flask-Limiter so it can deploy without a second service. For production traffic across multiple instances, replace `RATELIMIT_STORAGE_URI` with a shared Redis URL in Render; do not use SQLite in production.
+
+### Vercel Deployment
+Vercel support is included through `api/index.py` and `vercel.json`.
+
+1. Import the GitHub repository into Vercel.
+2. Set the project environment variables `SECRET_KEY`, `DATABASE_URL`, `ENVIRONMENT=production`, `FLASK_ENV=production`, `SESSION_COOKIE_SECURE=true`, and `RATELIMIT_STORAGE_URI`.
+3. Use an external PostgreSQL database. Vercel's filesystem is ephemeral, so do not use the default SQLite database.
+4. Run database migrations separately with `flask --app wsgi:app db upgrade` against the production `DATABASE_URL` before using the application.
+
+Vercel functions are serverless. Use a shared Redis URL for rate limiting when the application has more than one active function instance.
+
 ---
 
 ## 📡 REST API Reference
