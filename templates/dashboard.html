@@ -1,0 +1,972 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+<div class="spa-container">
+
+    <!-- View Switcher (Personal Wallet vs Merchant View) -->
+    <div class="view-switcher-bar">
+        <div class="view-tabs" id="view-tabs-container">
+            <button class="view-tab-btn active" id="tab-personal" data-action="switchView" data-action-arg="wallet">
+                <span>Personal wallet</span>
+            </button>
+            <button class="view-tab-btn" id="tab-merchant" data-action="switchView" data-action-arg="merchant" style="display: none;">
+                <span>🏪 Merchant Portal</span>
+                <span class="merchant-pill-badge">PRO</span>
+            </button>
+        </div>
+
+        <div id="merchant-optin-box" style="display: none;">
+            <button class="btn btn-secondary" data-action="openModal" data-action-arg="modal-merchant-reg" id="btn-open-optin">
+                <span>✨ Become a Merchant</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         VIEW 1: PERSONAL WALLET
+         ===================================================================== -->
+    <div id="view-wallet" class="view-content">
+        <!-- Hero Balance Banner -->
+        <div class="wallet-hero-card glass-card">
+            <div class="wallet-hero-header">
+                <div>
+                <span class="wallet-tag">YOUR WALLET</span>
+                    <h1 class="user-greeting" id="wallet-user-name">Loading...</h1>
+                    <p class="user-phone-meta">Mobile <strong id="wallet-user-phone">---</strong></p>
+                </div>
+                <span class="wallet-status-pill" id="wallet-account-status">Personal wallet</span>
+            </div>
+
+            <div class="balance-display-block">
+                    <span class="balance-title">Available balance</span>
+                <div class="balance-amount-row">
+                    <span class="currency-prefix">NPR</span>
+                    <span class="balance-number" id="wallet-balance-val">0.00</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions Bar -->
+            <div class="quick-actions-bar" id="wallet-actions" aria-label="Wallet actions">
+                <button class="action-btn btn-accent" data-action="openModal" data-action-arg="modal-send" id="btn-action-send">
+                    <span>💸 Send Money</span>
+                </button>
+                <button class="action-btn" data-action="openModal" data-action-arg="modal-pay" id="btn-action-pay">
+                    <span>🛍️ Pay Merchant</span>
+                </button>
+                <button class="action-btn" data-action="openModal" data-action-arg="modal-topup" id="btn-action-topup">
+                    <span>💳 Top-up Wallet</span>
+                </button>
+                <button class="action-btn" data-action="refreshAllData" id="btn-action-refresh" title="Sync live balance & transactions">
+                    <span>🔄 Refresh</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Transaction Ledger Section -->
+        <section class="transactions-section glass-card" id="transactions">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="card-title">Recent transactions</h2>
+                    <p class="section-description">Your wallet transactions</p>
+                </div>
+
+                <!-- Filter Pills -->
+                <div class="tx-filter-pills">
+                    <button class="tx-filter-btn active" data-action="filterTransactions" data-action-arg="" id="filter-all">All</button>
+                    <button class="tx-filter-btn" data-action="filterTransactions" data-action-arg="sent" id="filter-sent">Sent</button>
+                    <button class="tx-filter-btn" data-action="filterTransactions" data-action-arg="paid" id="filter-paid">Paid</button>
+                    <button class="tx-filter-btn" data-action="filterTransactions" data-action-arg="topup" id="filter-topup">Top-up</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="tx-table-wrapper">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tx-table-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                Loading transactions...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- =====================================================================
+         VIEW 2: MERCHANT PORTAL (for is_merchant == true)
+         ===================================================================== -->
+    <div id="view-merchant" class="view-content" style="display: none;">
+        <!-- Merchant Stats Banner -->
+        <div class="merchant-stats-grid">
+            <div class="stat-card glass-card">
+                <div class="stat-header">
+                    <div class="icon-bubble emerald">💰</div>
+                    <span class="meta-label">Total Received Today</span>
+                </div>
+                <div class="stat-val text-success">
+                    <span style="font-size: 1.4rem;">NPR</span> <span id="m-stat-today-total">0.00</span>
+                </div>
+                <span class="stat-sub">UTC Midnight to Present</span>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-header">
+                    <div class="icon-bubble cyan">🧾</div>
+                    <span class="meta-label">Payments Today</span>
+                </div>
+                <div class="stat-val text-primary" id="m-stat-today-count">0</div>
+                <span class="stat-sub">Customer transactions processed</span>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-header">
+                    <div class="icon-bubble violet">📷</div>
+                    <span class="meta-label">My Merchant QR</span>
+                </div>
+                <div style="margin-top: 0.5rem;">
+                    <button class="btn btn-secondary btn-block" data-action="openMerchantQrModal" id="btn-view-my-qr">
+                        <span>Show Merchant QR Code</span>
+                    </button>
+                </div>
+                <span class="stat-sub" id="m-stat-qr-id">QR ID: Loading...</span>
+            </div>
+        </div>
+
+        <!-- Incoming Customer Payments Ledger -->
+        <div class="transactions-section glass-card" style="margin-top: 2rem;">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="card-title" style="margin-bottom: 0.25rem;">Incoming Customer Payments</h2>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary);">Paginated history of customer payments to your merchant business</p>
+                </div>
+                <span class="badge-tag" id="m-ledger-badge">Merchant Ledger</span>
+            </div>
+
+            <div class="tx-table-wrapper">
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th>Tx ID</th>
+                            <th>Sender ID</th>
+                            <th>Merchant Account</th>
+                            <th>Timestamp</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="m-tx-table-body">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                Loading merchant records...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-bar" id="m-pagination-bar">
+                <span style="font-size: 0.85rem; color: var(--text-secondary);" id="m-page-info">
+                    Page 1 of 1
+                </span>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary" data-action="loadMerchantPage" data-action-arg="-1" id="m-prev-btn" disabled>
+                        <span>← Previous</span>
+                    </button>
+                    <button class="btn btn-secondary" data-action="loadMerchantPage" data-action-arg="1" id="m-next-btn" disabled>
+                        <span>Next →</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- =========================================================================
+     MODALS
+     ========================================================================= -->
+
+<!-- 1. Send Money Modal -->
+<div class="modal-backdrop" id="modal-send">
+    <div class="modal-dialog">
+        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-send">&times;</button>
+        <div class="modal-header">
+            <div class="modal-icon emerald">💸</div>
+            <h2 class="modal-title">Send Money</h2>
+            <p class="modal-desc">Transfer money to another Paisa Wallet account.</p>
+        </div>
+
+        <div class="modal-error-box" id="send-error"></div>
+
+        <form id="form-send" onsubmit="handleSendMoney(event)">
+            <div class="form-group">
+                <label class="form-label" for="send-phone">Recipient Mobile Number</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📱</span>
+                    <input type="tel" id="send-phone" class="form-control" placeholder="e.g. 9800000002" required>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+                <label class="form-label" for="send-amount">Amount (NPR)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">₹</span>
+                    <input type="number" id="send-amount" class="form-control" placeholder="0.00" step="0.01" min="1" required>
+                </div>
+            </div>
+
+            <div class="quick-amounts-bar" style="margin-top: 0.75rem;">
+                <span class="quick-label">Quick select:</span>
+                <div class="chips-group">
+                    <button type="button" class="amount-chip" data-set-input="send-amount" data-set-value="100">100</button>
+                    <button type="button" class="amount-chip" data-set-input="send-amount" data-set-value="500">500</button>
+                    <button type="button" class="amount-chip" data-set-input="send-amount" data-set-value="1000">1000</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btn-submit-send" style="margin-top: 1.5rem;">
+                <span id="btn-submit-send-text">Confirm Transfer</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 2. Pay Merchant Modal -->
+<div class="modal-backdrop" id="modal-pay">
+    <div class="modal-dialog">
+        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-pay">&times;</button>
+        <div class="modal-header">
+            <div class="modal-icon cyan">🛍️</div>
+            <h2 class="modal-title">Pay Merchant</h2>
+            <p class="modal-desc">Pay a registered Paisa Wallet merchant.</p>
+        </div>
+
+        <div class="modal-error-box" id="pay-error"></div>
+
+        <form id="form-pay" onsubmit="handlePayMerchant(event)">
+            <div class="form-group">
+                <label class="form-label" for="pay-merchant-select">Select Merchant</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🏪</span>
+                    <select id="pay-merchant-select" class="form-control" style="cursor: pointer;" required>
+                        <option value="" disabled selected>Choose a merchant...</option>
+                        {% for merchant in sample_merchants %}
+                        <option value="{{ merchant.id }}" data-merchant>{{ merchant.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+                <label class="form-label" for="pay-amount-input">Amount (NPR)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">₹</span>
+                    <input type="number" id="pay-amount-input" class="form-control" placeholder="0.00" step="0.01" min="1" required>
+                </div>
+            </div>
+
+            <div class="quick-amounts-bar" style="margin-top: 0.75rem;">
+                <span class="quick-label">Quick select:</span>
+                <div class="chips-group">
+                    <button type="button" class="amount-chip" data-set-input="pay-amount-input" data-set-value="150">150</button>
+                    <button type="button" class="amount-chip" data-set-input="pay-amount-input" data-set-value="350">350</button>
+                    <button type="button" class="amount-chip" data-set-input="pay-amount-input" data-set-value="500">500</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btn-submit-pay" style="margin-top: 1.5rem;">
+                <span id="btn-submit-pay-text">Confirm Payment</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 3. Top-Up Wallet Modal -->
+<div class="modal-backdrop" id="modal-topup">
+    <div class="modal-dialog">
+        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-topup">&times;</button>
+        <div class="modal-header">
+            <div class="modal-icon violet">💳</div>
+            <h2 class="modal-title">Add money</h2>
+            <p class="modal-desc">This demo adds funds as a simulated wallet top-up. No bank or payment gateway is connected.</p>
+        </div>
+
+        <div class="modal-error-box" id="topup-error"></div>
+
+        <form id="form-topup" onsubmit="handleTopupWallet(event)">
+            <div class="form-group">
+                <label class="form-label" for="topup-amount-input">Top-up Amount (NPR)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">₹</span>
+                    <input type="number" id="topup-amount-input" class="form-control" placeholder="1000.00" step="0.01" min="1" required>
+                </div>
+            </div>
+
+            <div class="quick-amounts-bar" style="margin-top: 0.75rem;">
+                <span class="quick-label">Presets:</span>
+                <div class="chips-group">
+                    <button type="button" class="amount-chip" data-set-input="topup-amount-input" data-set-value="500">+500</button>
+                    <button type="button" class="amount-chip" data-set-input="topup-amount-input" data-set-value="1000">+1000</button>
+                    <button type="button" class="amount-chip" data-set-input="topup-amount-input" data-set-value="2500">+2500</button>
+                    <button type="button" class="amount-chip" data-set-input="topup-amount-input" data-set-value="5000">+5000</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btn-submit-topup" style="margin-top: 1.5rem;">
+                <span id="btn-submit-topup-text">Add Funds to Wallet</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 4. Register Merchant Modal -->
+<div class="modal-backdrop" id="modal-merchant-reg">
+    <div class="modal-dialog">
+        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-merchant-reg">&times;</button>
+        <div class="modal-header">
+            <div class="modal-icon amber">🏪</div>
+            <h2 class="modal-title">Register as Merchant</h2>
+            <p class="modal-desc">Generate your business QR code and accept payments</p>
+        </div>
+
+        <div class="modal-error-box" id="reg-error"></div>
+
+        <form id="form-merchant-reg" onsubmit="handleRegisterMerchant(event)">
+            <div class="form-group">
+                <label class="form-label" for="reg-name">Business / Store Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🏢</span>
+                    <input type="text" id="reg-name" class="form-control" placeholder="e.g. Namaste Bakery" required>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+                <label class="form-label" for="reg-emoji">Store Icon (Emoji)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">✨</span>
+                    <input type="text" id="reg-emoji" class="form-control" value="🏪" placeholder="e.g. ☕, 🥐, 🍕">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btn-submit-reg" style="margin-top: 1.5rem;">
+                <span id="btn-submit-reg-text">Create Merchant Account</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 5. View Merchant QR Modal -->
+<div class="modal-backdrop" id="modal-qr-view">
+    <div class="modal-dialog" style="text-align: center;">
+        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-qr-view">&times;</button>
+        <div class="modal-header">
+            <h2 class="modal-title" id="qr-modal-store-name">Merchant QR Code</h2>
+            <p class="modal-desc" id="qr-modal-code-id">Scan to pay</p>
+        </div>
+
+        <div style="background: #ffffff; padding: 1.5rem; border-radius: var(--radius-md); display: inline-block; margin: 0 auto 1.5rem; box-shadow: 0 8px 24px rgba(0,0,0,0.3);">
+            <img id="qr-modal-image" src="" alt="Merchant QR Code" style="width: 200px; height: 200px; display: block;">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <a id="qr-modal-direct-link" href="#" target="_blank" class="btn btn-primary btn-block">
+                <span>Open Payment Page</span>
+            </a>
+            <button type="button" class="btn btn-secondary btn-block" data-action="closeModal" data-action-arg="modal-qr-view">
+                <span>Close</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-notification" id="app-toast">
+    <span id="toast-icon">✓</span>
+    <span id="toast-message">Success!</span>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ g.csp_nonce }}">
+/**
+ * =============================================================================
+ * Paisa Wallet SPA Client Controller (Replaces local in-memory state with fetch)
+ * =============================================================================
+ */
+
+const AppState = {
+    csrfToken: '',
+    user: null,
+    transactions: [],
+    currentTxFilter: '',
+    merchantData: null,
+    merchantPage: 1,
+    activeView: 'wallet',
+    availableMerchants: []
+};
+
+/**
+ * Retrieve CSRF token from meta tag or GET /api/csrf-token
+ */
+async function getCsrfToken() {
+    if (AppState.csrfToken) return AppState.csrfToken;
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) {
+        AppState.csrfToken = meta.content;
+        return AppState.csrfToken;
+    }
+    try {
+        const res = await fetch('/api/csrf-token');
+        if (res.ok) {
+            const data = await res.json();
+            AppState.csrfToken = data.csrf_token;
+            return AppState.csrfToken;
+        }
+    } catch (e) {
+        console.warn('Failed to retrieve CSRF token:', e);
+    }
+    return '';
+}
+
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    refreshAllData();
+});
+
+async function refreshAllData() {
+    await fetchWalletProfile();
+    await fetchTransactions(AppState.currentTxFilter);
+    if (AppState.user && AppState.user.is_merchant) {
+        await fetchMerchantDashboard(AppState.merchantPage);
+    }
+}
+
+// --- View Switching ---
+function switchView(viewName) {
+    AppState.activeView = viewName;
+    const viewWallet = document.getElementById('view-wallet');
+    const viewMerchant = document.getElementById('view-merchant');
+    const tabPersonal = document.getElementById('tab-personal');
+    const tabMerchant = document.getElementById('tab-merchant');
+
+    if (viewName === 'merchant') {
+        viewWallet.style.display = 'none';
+        viewMerchant.style.display = 'block';
+        tabPersonal.classList.remove('active');
+        tabMerchant.classList.add('active');
+        fetchMerchantDashboard(AppState.merchantPage);
+    } else {
+        viewWallet.style.display = 'block';
+        viewMerchant.style.display = 'none';
+        tabPersonal.classList.add('active');
+        tabMerchant.classList.remove('active');
+    }
+}
+
+// --- Data Layer: API Calls ---
+
+/**
+ * 1. GET /api/wallet
+ */
+async function fetchWalletProfile() {
+    try {
+        const res = await fetch('/api/wallet');
+        if (!res.ok) {
+            if (res.status === 401) window.location.href = '/login';
+            throw new Error(`Failed to fetch profile (HTTP ${res.status})`);
+        }
+        const data = await res.json();
+        AppState.user = data.user;
+        renderUserProfile();
+    } catch (err) {
+        console.error('fetchWalletProfile error:', err);
+    }
+}
+
+/**
+ * 2. GET /api/transactions?type=&limit=
+ */
+async function fetchTransactions(typeFilter = '') {
+    AppState.currentTxFilter = typeFilter;
+    try {
+        const url = typeFilter ? `/api/transactions?type=${encodeURIComponent(typeFilter)}&limit=25` : '/api/transactions?limit=25';
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        AppState.transactions = data.transactions || [];
+        renderTransactionsTable();
+    } catch (err) {
+        console.error('fetchTransactions error:', err);
+    }
+}
+
+/**
+ * 3. GET /api/merchant/dashboard?page=&per_page=
+ */
+async function fetchMerchantDashboard(page = 1) {
+    AppState.merchantPage = page;
+    try {
+        const res = await fetch(`/api/merchant/dashboard?page=${page}&per_page=5`);
+        if (!res.ok) return;
+        const data = await res.json();
+        AppState.merchantData = data;
+        renderMerchantDashboard();
+    } catch (err) {
+        console.error('fetchMerchantDashboard error:', err);
+    }
+}
+
+function generateIdempotencyKey() {
+    if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'idem_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+}
+
+/**
+ * 4. POST /api/send
+ */
+async function handleSendMoney(e) {
+    e.preventDefault();
+    const phone = document.getElementById('send-phone').value.trim();
+    const amount = parseFloat(document.getElementById('send-amount').value);
+    const errBox = document.getElementById('send-error');
+    const btn = document.getElementById('btn-submit-send');
+    const btnText = document.getElementById('btn-submit-send-text');
+
+    setModalLoading(btn, btnText, true, 'Sending...');
+    hideModalError(errBox);
+
+    try {
+        const csrfToken = await getCsrfToken();
+        const idemKey = generateIdempotencyKey();
+        const res = await fetch('/api/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+                'Idempotency-Key': idemKey
+            },
+            body: JSON.stringify({ phone, amount })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            const msg = (data.error && data.error.message) || data.message || data.error || 'Failed to transfer funds';
+            throw new Error(msg);
+        }
+
+        closeModal('modal-send');
+        document.getElementById('form-send').reset();
+        showToast(data.message || 'Transfer successful!');
+        await refreshAllData();
+    } catch (err) {
+        showModalError(errBox, err.message);
+    } finally {
+        setModalLoading(btn, btnText, false, 'Confirm Transfer');
+    }
+}
+
+/**
+ * 5. POST /api/pay
+ */
+async function handlePayMerchant(e) {
+    e.preventDefault();
+    const select = document.getElementById('pay-merchant-select');
+    const merchantId = parseInt(select.value);
+    const amount = parseFloat(document.getElementById('pay-amount-input').value);
+    const errBox = document.getElementById('pay-error');
+    const btn = document.getElementById('btn-submit-pay');
+    const btnText = document.getElementById('btn-submit-pay-text');
+
+    setModalLoading(btn, btnText, true, 'Processing...');
+    hideModalError(errBox);
+
+    try {
+        const csrfToken = await getCsrfToken();
+        const idemKey = generateIdempotencyKey();
+        const res = await fetch('/api/pay', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+                'Idempotency-Key': idemKey
+            },
+            body: JSON.stringify({ merchant_id: merchantId, amount })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            const msg = (data.error && data.error.message) || data.message || data.error || 'Payment failed';
+            throw new Error(msg);
+        }
+
+        closeModal('modal-pay');
+        document.getElementById('form-pay').reset();
+        showToast(data.message || 'Payment completed!');
+        await refreshAllData();
+    } catch (err) {
+        showModalError(errBox, err.message);
+    } finally {
+        setModalLoading(btn, btnText, false, 'Confirm Payment');
+    }
+}
+
+/**
+ * 6. POST /api/topup
+ */
+async function handleTopupWallet(e) {
+    e.preventDefault();
+    const amount = parseFloat(document.getElementById('topup-amount-input').value);
+    const errBox = document.getElementById('topup-error');
+    const btn = document.getElementById('btn-submit-topup');
+    const btnText = document.getElementById('btn-submit-topup-text');
+
+    setModalLoading(btn, btnText, true, 'Adding funds...');
+    hideModalError(errBox);
+
+    try {
+        const csrfToken = await getCsrfToken();
+        const idemKey = generateIdempotencyKey();
+        const res = await fetch('/api/topup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+                'Idempotency-Key': idemKey
+            },
+            body: JSON.stringify({ amount })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            const msg = (data.error && data.error.message) || data.message || data.error || 'Top-up failed';
+            throw new Error(msg);
+        }
+
+        closeModal('modal-topup');
+        document.getElementById('form-topup').reset();
+        showToast(data.message || 'Top-up credited to wallet!');
+        await refreshAllData();
+    } catch (err) {
+        showModalError(errBox, err.message);
+    } finally {
+        setModalLoading(btn, btnText, false, 'Add Funds to Wallet');
+    }
+}
+
+/**
+ * 7. POST /merchant/register
+ */
+async function handleRegisterMerchant(e) {
+    e.preventDefault();
+    const name = document.getElementById('reg-name').value.trim();
+    const emoji = document.getElementById('reg-emoji').value.trim();
+    const errBox = document.getElementById('reg-error');
+    const btn = document.getElementById('btn-submit-reg');
+    const btnText = document.getElementById('btn-submit-reg-text');
+
+    setModalLoading(btn, btnText, true, 'Registering...');
+    hideModalError(errBox);
+
+    try {
+        const csrfToken = await getCsrfToken();
+        const res = await fetch('/merchant/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ name, emoji })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            const msg = (data.error && data.error.message) || data.message || data.error || 'Failed to register merchant';
+            throw new Error(msg);
+        }
+
+        closeModal('modal-merchant-reg');
+        document.getElementById('form-merchant-reg').reset();
+        showToast(`Merchant account '${data.merchant.name}' activated!`);
+        await refreshAllData();
+        switchView('merchant');
+    } catch (err) {
+        showModalError(errBox, err.message);
+    } finally {
+        setModalLoading(btn, btnText, false, 'Create Merchant Account');
+    }
+}
+
+
+// --- UI Renderers ---
+
+function renderUserProfile() {
+    if (!AppState.user) return;
+    const u = AppState.user;
+
+    // Greeting & Balance
+    document.getElementById('wallet-user-name').textContent = `Good day, ${u.name}`;
+    document.getElementById('wallet-user-phone').textContent = u.phone_number;
+    document.getElementById('wallet-balance-val').textContent = Number(u.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Role badge & View Switcher visibility
+    const tabMerchant = document.getElementById('tab-merchant');
+    const optinBox = document.getElementById('merchant-optin-box');
+
+    if (u.is_merchant) {
+        tabMerchant.style.display = 'flex';
+        optinBox.style.display = 'none';
+        document.getElementById('wallet-account-status').textContent = 'Merchant & Personal';
+    } else {
+        tabMerchant.style.display = 'none';
+        optinBox.style.display = 'block';
+        document.getElementById('wallet-account-status').textContent = 'Personal Wallet';
+    }
+}
+
+function renderTransactionsTable() {
+    const tbody = document.getElementById('tx-table-body');
+    const txs = AppState.transactions;
+
+    if (!txs || txs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                    <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📭</div>
+                    <strong>No transactions found</strong>
+                    <p style="font-size: 0.85rem; margin-top: 0.25rem;">Transactions matching this filter will appear here.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = txs.map(tx => {
+        const isDebit = (tx.sender_id === AppState.user?.id);
+        const sign = isDebit ? '-' : '+';
+        const colorClass = isDebit ? 'text-danger' : 'text-success';
+        const formattedDate = tx.timestamp ? new Date(tx.timestamp).toLocaleString() : '---';
+
+        let desc = '';
+        if (tx.type === 'sent') desc = isDebit ? `Sent to User #${tx.receiver_id}` : `Received from User #${tx.sender_id}`;
+        else if (tx.type === 'paid') desc = `Paid ${tx.merchant_name || 'Merchant'}`;
+        else if (tx.type === 'topup') desc = 'Wallet Top-up';
+        else desc = tx.type;
+
+        const refBadge = tx.reference ? `<div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">${escapeHtml(tx.reference)}</div>` : '';
+
+        return `
+            <tr>
+                <td><span class="tx-pill tx-${tx.type}">${tx.type}</span></td>
+                <td>
+                    <strong>${escapeHtml(desc)}</strong>
+                    ${refBadge}
+                </td>
+                <td class="text-muted">${formattedDate}</td>
+                <td><span class="transaction-status status-${escapeHtml(String(tx.status).toLowerCase())}">${escapeHtml(tx.status)}</span></td>
+                <td style="text-align: right; font-weight: 700;" class="${colorClass}">
+                    ${sign} NPR ${Number(tx.amount).toFixed(2)}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+
+function renderMerchantDashboard() {
+    if (!AppState.merchantData) return;
+    const mData = AppState.merchantData;
+
+    // Metrics
+    document.getElementById('m-stat-today-total').textContent = Number(mData.total_received_today).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('m-stat-today-count').textContent = mData.count_payments_today;
+
+    if (mData.merchants && mData.merchants.length > 0) {
+        const m = mData.merchants[0];
+        document.getElementById('m-stat-qr-id').innerHTML = `QR ID: <code>${escapeHtml(m.qr_code_id)}</code>`;
+    }
+
+    // Populate Merchant Select Dropdown in Pay Modal if merchants exist
+    populateMerchantDropdown(mData.merchants || []);
+
+    // Render incoming payments table
+    const tbody = document.getElementById('m-tx-table-body');
+    const txs = mData.transactions || [];
+
+    if (txs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                    <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🛍️</div>
+                    <strong>No incoming merchant payments yet</strong>
+                    <p style="font-size: 0.85rem; margin-top: 0.25rem;">Customers paying via your QR code will be recorded here.</p>
+                </td>
+            </tr>
+        `;
+    } else {
+        tbody.innerHTML = txs.map(tx => {
+            const formattedDate = tx.timestamp ? new Date(tx.timestamp).toLocaleString() : '---';
+            return `
+                <tr>
+                    <td><code>#${tx.id}</code></td>
+                    <td>User #${tx.sender_id || 'Guest'}</td>
+                    <td><strong>${escapeHtml(tx.merchant_name || 'My Store')}</strong></td>
+                    <td class="text-muted">${formattedDate}</td>
+                    <td><span class="transaction-status status-${escapeHtml(String(tx.status).toLowerCase())}">${escapeHtml(tx.status)}</span></td>
+                    <td style="text-align: right; font-weight: 700;" class="text-success">
+                        + NPR ${Number(tx.amount).toFixed(2)}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Pagination info
+    const p = mData.pagination;
+    if (p) {
+        document.getElementById('m-page-info').textContent = `Page ${p.page} of ${p.total_pages || 1} (${p.total_items} transactions)`;
+        document.getElementById('m-prev-btn').disabled = !p.has_prev;
+        document.getElementById('m-next-btn').disabled = !p.has_next;
+    }
+}
+
+function loadMerchantPage(delta) {
+    const newPage = AppState.merchantPage + delta;
+    if (newPage >= 1) {
+        fetchMerchantDashboard(newPage);
+    }
+}
+
+function populateMerchantDropdown(merchants) {
+    const select = document.getElementById('pay-merchant-select');
+    if (!select) return;
+    const available = [...document.querySelectorAll('#pay-merchant-select option[data-merchant]')]
+        .map(option => ({ id: Number(option.value), name: option.textContent }));
+    const allMerchants = [...available, ...merchants].filter((merchant, index, all) =>
+        all.findIndex(item => item.id === merchant.id) === index
+    );
+    select.innerHTML = '<option value="" disabled selected>Choose a merchant...</option>' +
+        allMerchants.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+}
+
+function filterTransactions(type) {
+    // Update active button state
+    ['all', 'sent', 'paid', 'topup'].forEach(f => {
+        const btn = document.getElementById(`filter-${f}`);
+        if (btn) btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById(`filter-${type || 'all'}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    fetchTransactions(type);
+}
+
+// --- Modal Utilities ---
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('open');
+        const firstInput = modal.querySelector('input, select');
+        if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('open');
+        const errBox = modal.querySelector('.modal-error-box');
+        if (errBox) hideModalError(errBox);
+    }
+}
+
+function showModalError(errBox, msg) {
+    if (errBox) {
+        errBox.textContent = msg;
+        errBox.style.display = 'block';
+    }
+}
+
+function hideModalError(errBox) {
+    if (errBox) {
+        errBox.textContent = '';
+        errBox.style.display = 'none';
+    }
+}
+
+function setModalLoading(btn, btnText, isLoading, loadingLabel = 'Processing...') {
+    if (!btn || !btnText) return;
+    if (isLoading) {
+        btn.disabled = true;
+        btnText.innerHTML = `<span class="modal-spinner"></span> ${loadingLabel}`;
+    } else {
+        btn.disabled = false;
+        btnText.textContent = loadingLabel;
+    }
+}
+
+function openMerchantQrModal() {
+    if (!AppState.merchantData || !AppState.merchantData.merchants || AppState.merchantData.merchants.length === 0) {
+        showToast('No merchant account registered yet.');
+        return;
+    }
+    const m = AppState.merchantData.merchants[0];
+    document.getElementById('qr-modal-store-name').textContent = m.name;
+    document.getElementById('qr-modal-code-id').textContent = `QR ID: ${m.qr_code_id}`;
+    document.getElementById('qr-modal-image').src = `/merchant/${m.id}/qr?t=${Date.now()}`;
+    document.getElementById('qr-modal-direct-link').href = `/pay/${m.qr_code_id}`;
+    openModal('modal-qr-view');
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('app-toast');
+    const toastMsg = document.getElementById('toast-message');
+    if (toast && toastMsg) {
+        toastMsg.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Close modals when clicking outside dialog
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) {
+            closeModal(backdrop.id);
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="home-page" aria-labelledby="home-title">
+    <div class="home-intro">
+        <p class="home-brand">Paisa Wallet</p>
+        <h1 id="home-title">A simple wallet for everyday money.</h1>
+        <p>Send money, add money, and keep track of your transactions.</p>
+        <div class="home-actions">
+            <a href="{{ url_for('signup') }}" class="btn btn-primary" id="btn-hero-signup">Create account</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary" id="btn-hero-login">Log in</a>
+        </div>
+    </div>
+
+    <nav class="home-features" aria-label="Wallet features">
+        <a href="{{ url_for('signup') }}">
+            <strong>Send money</strong>
+            <span>Transfer money to another wallet.</span>
+        </a>
+        <a href="{{ url_for('signup') }}">
+            <strong>Add money</strong>
+            <span>Add funds to your wallet.</span>
+        </a>
+        <a href="{{ url_for('signup') }}">
+            <strong>Transactions</strong>
+            <span>See where your money has gone.</span>
+        </a>
+    </nav>
+</section>
+{% endblock %}

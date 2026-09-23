@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else "Paisa Wallet" }}</title>
+    <meta name="description" content="Send money, add funds, and review your Paisa Wallet transactions.">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="theme-dark">
+
+    <header class="app-header">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('hello_world') }}" class="brand-logo" id="nav-brand-logo">
+                <span class="logo-icon" aria-hidden="true">P</span>
+                <span class="logo-text">Paisa<span class="highlight">Wallet</span></span>
+            </a>
+            
+            <nav class="nav-links">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="nav-link" id="nav-dashboard-link">Dashboard</a>
+                    <a href="{{ url_for('dashboard') }}#transactions" class="nav-link" id="nav-transactions-link">Transactions</a>
+                    <button type="button" class="nav-link nav-action" data-action="openModal" data-action-arg="modal-send">Send</button>
+                    <button type="button" class="nav-link nav-action" data-action="openModal" data-action-arg="modal-topup">Add money</button>
+                    <span class="nav-user">{{ current_user.name }}</span>
+                    <form method="POST" action="{{ url_for('logout') }}" class="inline-form" id="nav-logout-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-sm" id="nav-logout-btn">Log Out</button>
+                    </form>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-link" id="nav-login-link">Log in</a>
+                    <a href="{{ url_for('signup') }}" class="btn btn-primary-sm" id="nav-signup-btn">Create account</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="app-main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container" id="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-alert flash-{{ category }}" role="alert">
+                            <span class="flash-message">{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+        <div class="footer-content">
+            <p>© 2026 Paisa Wallet</p>
+        </div>
+    </footer>
+
+    <script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

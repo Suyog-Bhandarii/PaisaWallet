@@ -1,0 +1,80 @@
+name: Paisa Wallet Tests & Quality Checks
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Syntax & Compilation Check
+      run: |
+        python -m compileall .
+
+    - name: Lint with Ruff
+      run: |
+        ruff check .
+
+    - name: Run Test Suite
+      env:
+        FLASK_ENV: testing
+        SECRET_KEY: ci-test-secret-key-not-for-production
+      run: |
+        python test_app.py
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: paisa_wallet_test
+          POSTGRES_USER: paisa
+          POSTGRES_PASSWORD: paisa_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U paisa -d paisa_wallet_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    - name: Run PostgreSQL integration tests
+      env:
+        FLASK_ENV: testing
+        SECRET_KEY: ci-test-secret-key-not-for-production
+        TEST_POSTGRES_URL: postgresql://paisa:paisa_test_password@127.0.0.1:5432/paisa_wallet_test
+      run: |
+        pytest -q test_postgres_integration.py

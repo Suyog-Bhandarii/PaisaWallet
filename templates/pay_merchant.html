@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="pay-merchant-card glass-card">
+        <!-- Merchant Identity Header -->
+        <div class="pay-merchant-header">
+            <div class="merchant-avatar-bubble">
+                <span class="merchant-emoji">{{ merchant.emoji if merchant.emoji else '🏪' }}</span>
+            </div>
+            
+            <div class="merchant-badge-pill">
+                <span class="pulse-dot"></span>
+                <span>Verified Paisa Merchant</span>
+            </div>
+
+            <h1 class="pay-title" id="pay-merchant-heading">
+                Pay <span class="gradient-text">{{ merchant.name }}</span>
+            </h1>
+            <p class="pay-subtitle">Enter payment amount to complete transaction.</p>
+            <span class="qr-meta-code">QR Code ID: <code>{{ merchant.qr_code_id }}</code></span>
+        </div>
+
+        <!-- Available Balance Indicator -->
+        <div class="pay-balance-indicator">
+            <span class="indicator-label">YOUR WALLET BALANCE</span>
+            <div class="indicator-val" id="payer-available-balance">
+                <span class="currency-tag">NPR</span>
+                <span class="balance-num">{{ "%.2f"|format(current_user.balance) }}</span>
+            </div>
+        </div>
+
+        <!-- Payment Form -->
+        <form method="POST" action="{{ url_for('pay_page', qr_code_id=merchant.qr_code_id) }}" class="pay-form" id="pay-merchant-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="pay-amount" class="form-label">Payment Amount</label>
+                <div class="amount-input-box">
+                    <span class="currency-symbol">NPR</span>
+                    <input 
+                        type="number" 
+                        name="amount" 
+                        id="pay-amount" 
+                        class="amount-field" 
+                        placeholder="0.00" 
+                        step="0.01" 
+                        min="1" 
+                        required 
+                        autofocus
+                    >
+                </div>
+            </div>
+
+            <!-- Quick Amount Chips -->
+            <div class="quick-amounts-bar">
+                <span class="quick-label">Quick select:</span>
+                <div class="chips-group">
+                    <button type="button" class="amount-chip" data-action="setPayAmount" data-action-arg="100">+100</button>
+                    <button type="button" class="amount-chip" data-action="setPayAmount" data-action-arg="250">+250</button>
+                    <button type="button" class="amount-chip" data-action="setPayAmount" data-action-arg="500">+500</button>
+                    <button type="button" class="amount-chip" data-action="setPayAmount" data-action-arg="1000">+1000</button>
+                </div>
+            </div>
+
+            <div class="pay-actions-group">
+                <button type="submit" class="btn btn-primary btn-block" id="pay-confirm-btn">
+                    <span class="btn-icon">⚡</span>
+                    <span>Confirm & Pay Merchant</span>
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-block" id="pay-cancel-btn">
+                    <span>Cancel</span>
+                </a>
+            </div>
+        </form>
+
+        <div class="merchant-qr-link">
+            <a href="{{ url_for('merchant_qr', id=merchant.id) }}" target="_blank" class="qr-preview-link" id="link-view-merchant-qr">
+                <span>📷 View Merchant QR Code</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ g.csp_nonce }}">
+function setPayAmount(val) {
+    const input = document.getElementById('pay-amount');
+    if (input) {
+        input.value = val.toFixed(2);
+        input.focus();
+    }
+}
+
+document.getElementById('pay-merchant-form')?.addEventListener('submit', function() {
+    const btn = document.getElementById('pay-confirm-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Processing Payment...</span>';
+    }
+});
+</script>
+{% endblock %}
