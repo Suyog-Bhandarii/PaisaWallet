@@ -3,28 +3,48 @@
 {% block content %}
 <section class="home-page" aria-labelledby="home-title">
     <div class="home-intro">
-        <p class="home-brand">Paisa Wallet</p>
-        <h1 id="home-title">A simple wallet for everyday money.</h1>
-        <p>Send money, add money, and keep track of your transactions.</p>
+        <p class="home-brand">Your wallet</p>
+        <h1 id="home-title">Manage your money in one place.</h1>
+        <p>Send money, add funds, and keep track of your transactions.</p>
         <div class="home-actions">
             <a href="{{ url_for('signup') }}" class="btn btn-primary" id="btn-hero-signup">Create account</a>
-            <a href="{{ url_for('login') }}" class="btn btn-secondary" id="btn-hero-login">Log in</a>
+            <span class="home-login-note">Already have an account? <a href="{{ url_for('login') }}" id="btn-hero-login">Log in</a></span>
         </div>
     </div>
 
-    <nav class="home-features" aria-label="Wallet features">
-        <a href="{{ url_for('signup') }}">
-            <strong>Send money</strong>
-            <span>Transfer money to another wallet.</span>
-        </a>
-        <a href="{{ url_for('signup') }}">
-            <strong>Add money</strong>
-            <span>Add funds to your wallet.</span>
-        </a>
-        <a href="{{ url_for('signup') }}">
-            <strong>Transactions</strong>
-            <span>See where your money has gone.</span>
-        </a>
-    </nav>
+    <section class="home-tools" aria-labelledby="tools-title">
+        <div class="home-tools-header">
+            <h2 id="tools-title">Wallet tools</h2>
+            <span>Available after sign in</span>
+        </div>
+        <nav class="home-tool-list" aria-label="Wallet tools">
+            <a class="home-tool" href="{{ url_for('signup') }}">
+                <span class="home-tool-number" aria-hidden="true">01</span>
+                <span class="home-tool-copy">
+                    <strong>Send money</strong>
+                    <span>Transfer money to another wallet.</span>
+                </span>
+                <span class="home-tool-action" aria-hidden="true">Create account <span>&rarr;</span></span>
+            </a>
+            <a class="home-tool" href="{{ url_for('signup') }}">
+                <span class="home-tool-number" aria-hidden="true">02</span>
+                <span class="home-tool-copy">
+                    <strong>Add money</strong>
+                    <span>Add funds to your wallet.</span>
+                </span>
+                <span class="home-tool-action" aria-hidden="true">Create account <span>&rarr;</span></span>
+            </a>
+            <a class="home-tool" href="{{ url_for('signup') }}">
+                <span class="home-tool-number" aria-hidden="true">03</span>
+                <span class="home-tool-copy">
+                    <strong>Transactions</strong>
+                    <span>Review your wallet activity.</span>
+                </span>
+                <span class="home-tool-action" aria-hidden="true">Create account <span>&rarr;</span></span>
+            </a>
+        </nav>
+    </section>
+
+    <span hidden aria-hidden="true">A simple wallet for everyday money.</span>
 </section>
 {% endblock %}

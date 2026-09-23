@@ -5,36 +5,43 @@
 {% block content %}
 <div class="spa-container">
 
-    <!-- View Switcher (Personal Wallet vs Merchant View) -->
+    <!-- View switcher for personal and merchant accounts -->
     <div class="view-switcher-bar">
         <div class="view-tabs" id="view-tabs-container">
             <button class="view-tab-btn active" id="tab-personal" data-action="switchView" data-action-arg="wallet">
                 <span>Personal wallet</span>
             </button>
             <button class="view-tab-btn" id="tab-merchant" data-action="switchView" data-action-arg="merchant" style="display: none;">
-                <span>🏪 Merchant Portal</span>
-                <span class="merchant-pill-badge">PRO</span>
+                <span>Merchant account</span>
             </button>
         </div>
 
         <div id="merchant-optin-box" style="display: none;">
             <button class="btn btn-secondary" data-action="openModal" data-action-arg="modal-merchant-reg" id="btn-open-optin">
-                <span>✨ Become a Merchant</span>
+            <span>Open a merchant account</span>
             </button>
         </div>
     </div>
 
-    <!-- =====================================================================
-         VIEW 1: PERSONAL WALLET
-         ===================================================================== -->
+    <!-- Personal wallet -->
     <div id="view-wallet" class="view-content">
-        <!-- Hero Balance Banner -->
-        <div class="wallet-hero-card glass-card">
+        <section class="dashboard-intro" aria-labelledby="dashboard-intro-title">
+            <div>
+                <p class="dashboard-eyebrow">Welcome back</p>
+                <h1 id="dashboard-intro-title">Manage your money<br class="desktop-break"> in one place.</h1>
+                <p class="dashboard-intro-copy">Send money, add funds, and keep track of your transactions.</p>
+            </div>
+            <div class="dashboard-intro-actions" aria-label="Quick wallet actions">
+                <button type="button" class="btn btn-primary" data-action="openModal" data-action-arg="modal-send">Send money</button>
+                <button type="button" class="btn btn-secondary" data-action="openModal" data-action-arg="modal-topup">Add money</button>
+            </div>
+        </section>
+
+        <div class="wallet-hero-card">
             <div class="wallet-hero-header">
                 <div>
-                <span class="wallet-tag">YOUR WALLET</span>
                     <h1 class="user-greeting" id="wallet-user-name">Loading...</h1>
-                    <p class="user-phone-meta">Mobile <strong id="wallet-user-phone">---</strong></p>
+                    <p class="user-phone-meta">Phone <strong id="wallet-user-phone">---</strong></p>
                 </div>
                 <span class="wallet-status-pill" id="wallet-account-status">Personal wallet</span>
             </div>
@@ -47,32 +54,56 @@
                 </div>
             </div>
 
-            <!-- Quick Actions Bar -->
             <div class="quick-actions-bar" id="wallet-actions" aria-label="Wallet actions">
                 <button class="action-btn btn-accent" data-action="openModal" data-action-arg="modal-send" id="btn-action-send">
-                    <span>💸 Send Money</span>
+                    <span>Send money</span>
                 </button>
                 <button class="action-btn" data-action="openModal" data-action-arg="modal-pay" id="btn-action-pay">
-                    <span>🛍️ Pay Merchant</span>
+                    <span>Pay merchant</span>
                 </button>
                 <button class="action-btn" data-action="openModal" data-action-arg="modal-topup" id="btn-action-topup">
-                    <span>💳 Top-up Wallet</span>
+                    <span>Add money</span>
                 </button>
                 <button class="action-btn" data-action="refreshAllData" id="btn-action-refresh" title="Sync live balance & transactions">
-                    <span>🔄 Refresh</span>
+                    <span>Refresh</span>
                 </button>
             </div>
         </div>
 
-        <!-- Transaction Ledger Section -->
-        <section class="transactions-section glass-card" id="transactions">
+        <section class="wallet-tools" aria-labelledby="wallet-tools-title">
+            <div class="wallet-tools-heading">
+                <div>
+                    <h2 id="wallet-tools-title">Wallet tools</h2>
+                    <p>Everything you need to manage your money.</p>
+                </div>
+            </div>
+            <div class="wallet-tool-grid">
+                <button type="button" class="wallet-tool" data-action="openModal" data-action-arg="modal-send">
+                    <span class="tool-icon tool-icon-send" aria-hidden="true"></span>
+                    <span class="tool-copy"><strong>Send money</strong><span>Transfer money to another wallet.</span></span>
+                    <span class="tool-arrow" aria-hidden="true">&rarr;</span>
+                </button>
+                <button type="button" class="wallet-tool" data-action="openModal" data-action-arg="modal-topup">
+                    <span class="tool-icon tool-icon-add" aria-hidden="true"></span>
+                    <span class="tool-copy"><strong>Add money</strong><span>Add funds to your wallet.</span></span>
+                    <span class="tool-arrow" aria-hidden="true">&rarr;</span>
+                </button>
+                <a class="wallet-tool" href="#transactions">
+                    <span class="tool-icon tool-icon-transactions" aria-hidden="true"></span>
+                    <span class="tool-copy"><strong>Transactions</strong><span>Review your wallet activity.</span></span>
+                    <span class="tool-arrow" aria-hidden="true">&rarr;</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="transactions-section" id="transactions">
             <div class="section-header-row">
                 <div>
                     <h2 class="card-title">Recent transactions</h2>
                     <p class="section-description">Your wallet transactions</p>
                 </div>
+                <a class="view-all-link" href="#transactions">View all <span aria-hidden="true">&rarr;</span></a>
 
-                <!-- Filter Pills -->
                 <div class="tx-filter-pills">
                     <button class="tx-filter-btn active" data-action="filterTransactions" data-action-arg="" id="filter-all">All</button>
                     <button class="tx-filter-btn" data-action="filterTransactions" data-action-arg="sent" id="filter-sent">Sent</button>
@@ -81,7 +112,6 @@
                 </div>
             </div>
 
-            <!-- Table -->
             <div class="tx-table-wrapper">
                 <table class="tx-table">
                     <thead>
@@ -105,52 +135,49 @@
         </section>
     </div>
 
-    <!-- =====================================================================
-         VIEW 2: MERCHANT PORTAL (for is_merchant == true)
-         ===================================================================== -->
+    <!-- Merchant account -->
     <div id="view-merchant" class="view-content" style="display: none;">
         <!-- Merchant Stats Banner -->
         <div class="merchant-stats-grid">
             <div class="stat-card glass-card">
                 <div class="stat-header">
-                    <div class="icon-bubble emerald">💰</div>
-                    <span class="meta-label">Total Received Today</span>
+                    <div class="icon-bubble emerald" aria-hidden="true">NPR</div>
+                    <span class="meta-label">Received today</span>
                 </div>
                 <div class="stat-val text-success">
                     <span style="font-size: 1.4rem;">NPR</span> <span id="m-stat-today-total">0.00</span>
                 </div>
-                <span class="stat-sub">UTC Midnight to Present</span>
+                <span class="stat-sub">Since midnight UTC</span>
             </div>
 
             <div class="stat-card glass-card">
                 <div class="stat-header">
-                    <div class="icon-bubble cyan">🧾</div>
-                    <span class="meta-label">Payments Today</span>
+                    <div class="icon-bubble cyan" aria-hidden="true">#</div>
+                    <span class="meta-label">Payments today</span>
                 </div>
                 <div class="stat-val text-primary" id="m-stat-today-count">0</div>
-                <span class="stat-sub">Customer transactions processed</span>
+                <span class="stat-sub">Completed customer payments</span>
             </div>
 
             <div class="stat-card glass-card">
                 <div class="stat-header">
-                    <div class="icon-bubble violet">📷</div>
-                    <span class="meta-label">My Merchant QR</span>
+                    <div class="icon-bubble violet" aria-hidden="true">QR</div>
+                    <span class="meta-label">Merchant QR</span>
                 </div>
                 <div style="margin-top: 0.5rem;">
                     <button class="btn btn-secondary btn-block" data-action="openMerchantQrModal" id="btn-view-my-qr">
-                        <span>Show Merchant QR Code</span>
+                        <span>View QR code</span>
                     </button>
                 </div>
                 <span class="stat-sub" id="m-stat-qr-id">QR ID: Loading...</span>
             </div>
         </div>
 
-        <!-- Incoming Customer Payments Ledger -->
-        <div class="transactions-section glass-card" style="margin-top: 2rem;">
+        <div class="transactions-section" style="margin-top: 2rem;">
             <div class="section-header-row">
                 <div>
-                    <h2 class="card-title" style="margin-bottom: 0.25rem;">Incoming Customer Payments</h2>
-                    <p style="font-size: 0.88rem; color: var(--text-secondary);">Paginated history of customer payments to your merchant business</p>
+                        <h2 class="card-title" style="margin-bottom: 0.25rem;">Incoming payments</h2>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary);">Payments received by your merchant account</p>
                 </div>
                 <span class="badge-tag" id="m-ledger-badge">Merchant Ledger</span>
             </div>
@@ -200,13 +227,12 @@
      MODALS
      ========================================================================= -->
 
-<!-- 1. Send Money Modal -->
-<div class="modal-backdrop" id="modal-send">
+<!-- Send money modal -->
+<div class="modal-backdrop" id="modal-send" role="dialog" aria-modal="true" aria-labelledby="send-modal-title">
     <div class="modal-dialog">
-        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-send">&times;</button>
+        <button class="modal-close-btn" aria-label="Close send money dialog" data-action="closeModal" data-action-arg="modal-send">&times;</button>
         <div class="modal-header">
-            <div class="modal-icon emerald">💸</div>
-            <h2 class="modal-title">Send Money</h2>
+            <h2 class="modal-title" id="send-modal-title">Send Money</h2>
             <p class="modal-desc">Transfer money to another Paisa Wallet account.</p>
         </div>
 
@@ -214,9 +240,8 @@
 
         <form id="form-send" onsubmit="handleSendMoney(event)">
             <div class="form-group">
-                <label class="form-label" for="send-phone">Recipient Mobile Number</label>
+                <label class="form-label" for="send-phone">Recipient phone number</label>
                 <div class="input-wrapper">
-                    <span class="input-icon">📱</span>
                     <input type="tel" id="send-phone" class="form-control" placeholder="e.g. 9800000002" required>
                 </div>
             </div>
@@ -245,13 +270,12 @@
     </div>
 </div>
 
-<!-- 2. Pay Merchant Modal -->
-<div class="modal-backdrop" id="modal-pay">
+<!-- Pay merchant modal -->
+<div class="modal-backdrop" id="modal-pay" role="dialog" aria-modal="true" aria-labelledby="pay-modal-title">
     <div class="modal-dialog">
-        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-pay">&times;</button>
+        <button class="modal-close-btn" aria-label="Close pay merchant dialog" data-action="closeModal" data-action-arg="modal-pay">&times;</button>
         <div class="modal-header">
-            <div class="modal-icon cyan">🛍️</div>
-            <h2 class="modal-title">Pay Merchant</h2>
+            <h2 class="modal-title" id="pay-modal-title">Pay Merchant</h2>
             <p class="modal-desc">Pay a registered Paisa Wallet merchant.</p>
         </div>
 
@@ -261,7 +285,6 @@
             <div class="form-group">
                 <label class="form-label" for="pay-merchant-select">Select Merchant</label>
                 <div class="input-wrapper">
-                    <span class="input-icon">🏪</span>
                     <select id="pay-merchant-select" class="form-control" style="cursor: pointer;" required>
                         <option value="" disabled selected>Choose a merchant...</option>
                         {% for merchant in sample_merchants %}
@@ -295,21 +318,20 @@
     </div>
 </div>
 
-<!-- 3. Top-Up Wallet Modal -->
-<div class="modal-backdrop" id="modal-topup">
+<!-- Add money modal -->
+<div class="modal-backdrop" id="modal-topup" role="dialog" aria-modal="true" aria-labelledby="topup-modal-title">
     <div class="modal-dialog">
-        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-topup">&times;</button>
+        <button class="modal-close-btn" aria-label="Close add money dialog" data-action="closeModal" data-action-arg="modal-topup">&times;</button>
         <div class="modal-header">
-            <div class="modal-icon violet">💳</div>
-            <h2 class="modal-title">Add money</h2>
-            <p class="modal-desc">This demo adds funds as a simulated wallet top-up. No bank or payment gateway is connected.</p>
+            <h2 class="modal-title" id="topup-modal-title">Add money</h2>
+            <p class="modal-desc">Add funds to your wallet balance.</p>
         </div>
 
         <div class="modal-error-box" id="topup-error"></div>
 
         <form id="form-topup" onsubmit="handleTopupWallet(event)">
             <div class="form-group">
-                <label class="form-label" for="topup-amount-input">Top-up Amount (NPR)</label>
+                <label class="form-label" for="topup-amount-input">Amount (NPR)</label>
                 <div class="input-wrapper">
                     <span class="input-icon">₹</span>
                     <input type="number" id="topup-amount-input" class="form-control" placeholder="1000.00" step="0.01" min="1" required>
@@ -333,14 +355,13 @@
     </div>
 </div>
 
-<!-- 4. Register Merchant Modal -->
-<div class="modal-backdrop" id="modal-merchant-reg">
+<!-- Register merchant modal -->
+<div class="modal-backdrop" id="modal-merchant-reg" role="dialog" aria-modal="true" aria-labelledby="merchant-modal-title">
     <div class="modal-dialog">
-        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-merchant-reg">&times;</button>
+        <button class="modal-close-btn" aria-label="Close merchant registration dialog" data-action="closeModal" data-action-arg="modal-merchant-reg">&times;</button>
         <div class="modal-header">
-            <div class="modal-icon amber">🏪</div>
-            <h2 class="modal-title">Register as Merchant</h2>
-            <p class="modal-desc">Generate your business QR code and accept payments</p>
+            <h2 class="modal-title" id="merchant-modal-title">Register as Merchant</h2>
+            <p class="modal-desc">Create a merchant account to accept payments.</p>
         </div>
 
         <div class="modal-error-box" id="reg-error"></div>
@@ -355,7 +376,7 @@
             </div>
 
             <div class="form-group" style="margin-top: 1rem;">
-                <label class="form-label" for="reg-emoji">Store Icon (Emoji)</label>
+                <label class="form-label" for="reg-emoji">Store icon (optional)</label>
                 <div class="input-wrapper">
                     <span class="input-icon">✨</span>
                     <input type="text" id="reg-emoji" class="form-control" value="🏪" placeholder="e.g. ☕, 🥐, 🍕">
@@ -369,10 +390,10 @@
     </div>
 </div>
 
-<!-- 5. View Merchant QR Modal -->
-<div class="modal-backdrop" id="modal-qr-view">
+<!-- View merchant QR modal -->
+<div class="modal-backdrop" id="modal-qr-view" role="dialog" aria-modal="true" aria-labelledby="qr-modal-store-name">
     <div class="modal-dialog" style="text-align: center;">
-        <button class="modal-close-btn" data-action="closeModal" data-action-arg="modal-qr-view">&times;</button>
+        <button class="modal-close-btn" aria-label="Close merchant QR dialog" data-action="closeModal" data-action-arg="modal-qr-view">&times;</button>
         <div class="modal-header">
             <h2 class="modal-title" id="qr-modal-store-name">Merchant QR Code</h2>
             <p class="modal-desc" id="qr-modal-code-id">Scan to pay</p>

@@ -15,8 +15,7 @@
     <header class="app-header">
         <div class="nav-container">
             <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('hello_world') }}" class="brand-logo" id="nav-brand-logo">
-                <span class="logo-icon" aria-hidden="true">P</span>
-                <span class="logo-text">Paisa<span class="highlight">Wallet</span></span>
+                <img class="brand-logo-image" src="{{ url_for('static', filename='images/paisawallet-logo.png') }}" alt="PaisaWallet" width="409" height="409">
             </a>
             
             <nav class="nav-links">
@@ -34,6 +33,9 @@
                     <a href="{{ url_for('login') }}" class="nav-link" id="nav-login-link">Log in</a>
                     <a href="{{ url_for('signup') }}" class="btn btn-primary-sm" id="nav-signup-btn">Create account</a>
                 {% endif %}
+                <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch theme" aria-pressed="false">
+                    <span class="theme-toggle-label">Light</span>
+                </button>
             </nav>
         </div>
     </header>
@@ -61,6 +63,27 @@
     </footer>
 
     <script nonce="{{ g.csp_nonce }}" src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script nonce="{{ g.csp_nonce }}">
+        (() => {
+            const toggle = document.getElementById('theme-toggle');
+            const savedTheme = window.localStorage.getItem('paisa-theme');
+            const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+            const applyTheme = (isLight) => {
+                document.body.classList.toggle('theme-light', isLight);
+                document.body.classList.toggle('theme-dark', !isLight);
+                if (toggle) {
+                    toggle.setAttribute('aria-pressed', String(isLight));
+                    toggle.querySelector('.theme-toggle-label').textContent = isLight ? 'Dark' : 'Light';
+                }
+            };
+            applyTheme(savedTheme ? savedTheme === 'light' : prefersLight);
+            toggle?.addEventListener('click', () => {
+                const isLight = !document.body.classList.contains('theme-light');
+                applyTheme(isLight);
+                window.localStorage.setItem('paisa-theme', isLight ? 'light' : 'dark');
+            });
+        })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
