@@ -7,7 +7,7 @@ import os
 import threading
 import unittest
 
-from app import create_app
+from app import bcrypt, create_app
 from config import TestConfig
 from models import Transaction, User, db
 
@@ -29,6 +29,8 @@ class TestPostgresFinancialConcurrency(unittest.TestCase):
             db.create_all()
             cls.sender = User(name="PG Sender", phone_number="9800000201", balance=10000)
             cls.receiver = User(name="PG Receiver", phone_number="9800000202", balance=0)
+            cls.sender.set_password(bcrypt, "postgres-test-password")
+            cls.receiver.set_password(bcrypt, "postgres-test-password")
             db.session.add_all([cls.sender, cls.receiver])
             db.session.commit()
             cls.sender_id = cls.sender.id
